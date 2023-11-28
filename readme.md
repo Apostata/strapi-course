@@ -137,7 +137,23 @@ npm run strapi ts:generate-types --debug #optional flag to display additional lo
 [Content types](./Content_types.md)
 
 ## Strapi Rest API
+
 [Strapi Rest API](./Strapi-api.md)
 
 ## Strapi GraphQL API
+
 [Strapi GraphQL API](./Strapi-graphql.md)
+
+## Customizing Strapi
+
+[Customizing Strapi](./Customizing_strapi.md)
+
+## Premium posts (example)
+
+[Premium posts](./PremiumPosts.md)
+
+## Post Likes (example)
+
+[Post Likes](./PostLikes.md)
+
+[Link to Error handling](https://docs.strapi.io/dev-docs/error-handling)
