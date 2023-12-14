@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_layout_featured_courses",
+  "info": {
+    "displayName": "FeaturedCourse",
+    "icon": "expand"
+  },
+  "options": {},
+  "attributes": {
+    "course": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::course.course"
+    }
+  }
+}

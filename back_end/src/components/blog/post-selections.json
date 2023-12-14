@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_blog_post_selections",
+  "info": {
+    "displayName": "postSelections",
+    "icon": "apps"
+  },
+  "options": {},
+  "attributes": {
+    "heading": {
+      "type": "string",
+      "required": false
+    },
+    "featurePosts": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::post.post"
+    }
+  }
+}

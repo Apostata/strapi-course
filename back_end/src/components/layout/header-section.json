@@ -1,0 +1,29 @@
+{
+  "collectionName": "components_layout_header_sections",
+  "info": {
+    "displayName": "header",
+    "icon": "layout",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "image": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "buttons": {
+      "displayName": "link",
+      "type": "component",
+      "repeatable": true,
+      "component": "layout.link"
+    }
+  }
+}

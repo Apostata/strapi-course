@@ -1,0 +1,26 @@
+{
+  "collectionName": "components_layout_page_base_architectures",
+  "info": {
+    "displayName": "pageBaseArchitecture",
+    "icon": "dashboard"
+  },
+  "options": {},
+  "attributes": {
+    "content": {
+      "type": "richtext",
+      "required": true
+    },
+    "coverImage": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "seoPageInfo": {
+      "type": "component",
+      "repeatable": false,
+      "component": "seo.seo-information"
+    }
+  }
+}
