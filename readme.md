@@ -156,4 +156,10 @@ npm run strapi ts:generate-types --debug #optional flag to display additional lo
 
 [Post Likes](./PostLikes.md)
 
+## Error handling
+
 [Link to Error handling](https://docs.strapi.io/dev-docs/error-handling)
+
+## In doubt about query params?
+
+[Iteractive query builder](https://docs.strapi.io/dev-docs/api/rest/interactive-query-builder)

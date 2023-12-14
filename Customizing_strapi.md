@@ -28,11 +28,7 @@ This Strapi object gets injected is strapi core functions (policies, controllers
 [Customizing services](Customizing_services.md)
 
 ## Lifecycle Hooks
+[Lifecycle Hooks](Lifecycle_hooks.md)
 
-Are functions that are executed before or after a specific model action. You can use them to add custom logic to your API. 
-You can create a hook inside the `./src/api/{model-name}/content-type/{model-name}/lifecycles.ts` file.
-Means to do something internal when some event happens.
-
-[LifiCycle Hooks documentation](https://docs.strapi.io/dev-docs/backend-customization/models#lifecycle-hooks)
 
 [Back](readme.md)

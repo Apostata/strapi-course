@@ -144,6 +144,7 @@ query Posts {
 
 [GraphQL api docs](https://docs.strapi.io/dev-docs/api/graphql)
 
+[Extending GraphQL API](Extending_GraphQL_API.md)
 
 
 [BACK](./readme.md)

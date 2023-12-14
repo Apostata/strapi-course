@@ -58,6 +58,11 @@
       "relation": "manyToMany",
       "target": "plugin::users-permissions.user",
       "mappedBy": "likes"
+    },
+    "authors": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::author.author"
     }
   }
 }
