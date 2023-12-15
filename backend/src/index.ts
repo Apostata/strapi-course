@@ -1,4 +1,5 @@
 import { Strapi } from "@strapi/strapi";
+import likePostMutation from "./api/post/graphql/post";
 
 export default {
   /**
@@ -7,7 +8,9 @@ export default {
    *
    * This gives you an opportunity to extend code.
    */
-  register({ strapi }: { strapi: Strapi }) {},
+  register({ strapi }: { strapi: Strapi }) {
+    likePostMutation(strapi); // register custom likePostMutation
+  },
 
   /**
    * An asynchronous bootstrap function that runs before

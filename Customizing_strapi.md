@@ -30,5 +30,7 @@ This Strapi object gets injected is strapi core functions (policies, controllers
 ## Lifecycle Hooks
 [Lifecycle Hooks](Lifecycle_hooks.md)
 
+## Webhooks
+[Webhooks](Webhooks.md)
 
 [Back](readme.md)
