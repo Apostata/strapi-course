@@ -1,8 +1,8 @@
 import { Strapi } from "@strapi/strapi";
 
 export default ({ strapi }: { strapi: Strapi }) => ({
-  index(ctx) {
-    ctx.body = strapi
+  index: async (ctx) => {
+    ctx.body = await strapi
       .plugin("github-projects")
       .service("getReposService")
       .getPublicRepos();
