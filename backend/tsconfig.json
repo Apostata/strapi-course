@@ -2,7 +2,8 @@
   "extends": "@strapi/typescript-utils/tsconfigs/server",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "."
+    "rootDir": ".",
+    "typeRoots": ["./types/images.d.ts"]
   },
   "include": ["./", "./**/*.ts", "./**/*.js", "src/**/*.json"],
   "exclude": [

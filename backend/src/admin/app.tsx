@@ -1,3 +1,4 @@
+import Favicon from "./extensions/favicon.png";
 export default {
   config: {
     locales: [
@@ -7,6 +8,7 @@ export default {
       // 'de',
       // 'dk',
       // 'es',
+      "en",
       // 'he',
       // 'id',
       // 'it',
@@ -28,13 +30,39 @@ export default {
       // 'zh-Hans',
       // 'zh',
     ],
+    head: {
+      favicon: Favicon,
+    },
+    tutorials: false,
+    theme: {
+      colors: {
+        //light Theme
+        buttonPrimary500: "#f00", //button hover
+        buttonPrimary600: "#d9822f", //button
+        primary500: "#f00", // secondary
+        primary600: "#d9822f", // primary, active
+        primary700: "#328048", //tertiary, calltoaction
+      },
+    },
     translations: {
       "pt-BR": {
-        "Auth.form.welcome.title": "Bem-vindo ao Painel de Administração",
+        titleTemplate: "Painel Administrativo",
+        "Auth.form.welcome.title": "Bem-vindo ao Painel Administrativo",
+        "Auth.form.welcome.subtitle": "Faça login para continuar",
+        "app.components.LeftMenu.navbrand.title": "Painel Administrativo",
+        "global.localeToggle.label": "Idioma",
+      },
+      en: {
+        titleTemplate: "Admin Panel",
+        "Auth.form.welcome.title": "Welcome to the Admin Panel",
+        "Auth.form.welcome.subtitle": "Login to continue",
+        "app.components.LeftMenu.navbrand.title": "Admin Panel",
+        "global.localeToggle.label": "Language",
       },
     },
   },
   bootstrap(app: any) {
+    document.title = "admin panel";
     console.log(app);
   },
 };
