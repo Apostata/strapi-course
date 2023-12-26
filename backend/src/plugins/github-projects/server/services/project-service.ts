@@ -19,4 +19,12 @@ export default ({ strapi }: { strapi: Strapi }) => ({
     );
     return newProject;
   },
+  delete: async (projectId: string) => {
+    console.log("service projectId", projectId);
+    const project = await strapi.entityService!.delete(
+      "plugin::github-projects.project",
+      projectId
+    );
+    return project;
+  },
 });

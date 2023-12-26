@@ -218,7 +218,6 @@ import {
   VisuallyHidden,
   HeaderLayout,
   Loader,
-  Alert,
   Flex,
   IconButton,
   Link,
@@ -226,22 +225,45 @@ import {
 import { useFetchClient } from "@strapi/helper-plugin";
 import { Pencil, Trash, Plus } from "@strapi/icons";
 import { Repo } from "../../../types";
+import { useAlert } from "../hooks/useAlert";
 
 const COL_COUNT = 5;
 
 const Repo: FC<any> = () => {
   const [repos, setRepos] = React.useState<Repo[]>([]);
   const [isLoadgin, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState(undefined);
-  const client = useFetchClient();
   const [selectedRepos, setSelectedRepos] = React.useState<string[]>([]);
+  const { alert, showAlert, AlertComponent } = useAlert();
+
+  const client = useFetchClient();
   const allCheked = selectedRepos.length === repos.length;
   const isIndeterminate = selectedRepos.length > 0 && !allCheked;
 
-  const createProject = async (repoId: string) => {
-    console.log("create project", repoId);
-    const response = await client.post("/github-projects/project", { repoId });
-    console.log(response);
+  const createProject = async (repo: Repo) => {
+    try {
+      const response = await client.post("/github-projects/project", repo);
+      const newRepos = repos.map((repo) => {
+        if (repo.id.toString() === response.data.repositoryId) {
+          return {
+            ...repo,
+            projectId: response.data.id,
+          };
+        }
+        return repo;
+      });
+      setRepos(newRepos);
+      showAlert({
+        title: "Project created",
+        message: "Project created successfully",
+        variant: "success",
+      });
+    } catch (err: any) {
+      showAlert({
+        title: "Error creating project",
+        message: err.message,
+        variant: "danger",
+      });
+    }
   };
 
   useEffect(() => {
@@ -252,7 +274,11 @@ const Repo: FC<any> = () => {
         setRepos(response.data);
       })
       .catch((err: any) => {
-        setError(err);
+        showAlert({
+          title: "Error fetching repositories",
+          message: err.message,
+          variant: "danger",
+        });
       })
       .finally(() => {
         setIsLoading(false);
@@ -267,24 +293,16 @@ const Repo: FC<any> = () => {
     );
   }
 
-  if (error) {
-    return (
-      <Box padding={8} background="neutral100">
-        <Alert
-          closeLabel="Close alert"
-          title="Error fetching repositories"
-          variant="danger"
-        >
-          {(error as any).toString()}
-        </Alert>
-      </Box>
-    );
-  }
-
   return (
     <>
-      <HeaderLayout title="Repositories" subtitle="your git repos" as="h2" />
-
+      <Flex justifyContent="flex-start">
+        <HeaderLayout title="Repositories" subtitle="your git repos" as="h2" />
+        {alert && (
+          <div>
+            <AlertComponent closeLabel="Close" />
+          </div>
+        )}
+      </Flex>
       <Box padding={8} background="neutral100">
         <Table colCount={COL_COUNT} rowCount={repos.length}>
           <Thead>
@@ -385,7 +403,7 @@ const Repo: FC<any> = () => {
                     ) : (
                       <Flex>
                         <IconButton
-                          onClick={() => createProject(id)}
+                          onClick={() => createProject(repo)}
                           label="Add"
                           noBorder
                           icon={<Plus />}
@@ -450,3 +468,66 @@ export default [
 ```
 
 ### Adding the controller
+
+```tsx
+import { Strapi } from "@strapi/strapi";
+
+export default ({ strapi }: { strapi: Strapi }) => ({
+  create: async (ctx: any) => {
+    const repo = ctx.request.body;
+    const userId = ctx.state.user.id;
+    const newProject = await strapi
+      .plugin("github-projects")
+      .service("projectService")
+      .create(repo, userId);
+    return newProject;
+  },
+});
+
+```
+
+### Adding the service
+
+```tsx
+import { Strapi } from "@strapi/strapi";
+import { Repo } from "../../types";
+
+export default ({ strapi }: { strapi: Strapi }) => ({
+  create: async (repo: Repo, userId: string) => {
+    const newProject = await strapi.entityService!.create(
+      "plugin::github-projects.project",
+      {
+        data: {
+          repositoryId: `${repo.id}`,
+          title: repo.name,
+          shortDescription: repo.shortDescription,
+          longDescription: repo.longDescription,
+          repositoryUrl: repo.url,
+          createdBy: userId,
+          updatedBy: userId,
+        },
+      }
+    );
+    return newProject;
+  },
+});
+
+```
+
+## Generating a single project from the plugin action (DELETE)
+
+### Adding the route
+
+```tsx
+```
+
+### Adding the controller
+
+```tsx
+```
+
+### Adding the service
+
+```tsx
+```
+

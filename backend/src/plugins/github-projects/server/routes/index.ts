@@ -15,4 +15,13 @@ export default [
       policies: ["admin::isAuthenticatedAdmin"], //somente admin pode acessar
     },
   },
+
+  {
+    method: "DELETE",
+    path: "/project/:id",
+    handler: "projectController.delete",
+    config: {
+      policies: ["admin::isAuthenticatedAdmin"], //somente admin pode acessar
+    },
+  },
 ];

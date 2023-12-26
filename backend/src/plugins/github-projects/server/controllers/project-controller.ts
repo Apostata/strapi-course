@@ -10,4 +10,15 @@ export default ({ strapi }: { strapi: Strapi }) => ({
       .create(repo, userId);
     return newProject;
   },
+
+  delete: async (ctx: any) => {
+    console.log("controller params", ctx.params);
+    const projectId = ctx.params.id;
+    console.log("controller projectId", projectId);
+    const deletedProject = await strapi
+      .plugin("github-projects")
+      .service("projectService")
+      .delete(projectId);
+    return deletedProject;
+  },
 });

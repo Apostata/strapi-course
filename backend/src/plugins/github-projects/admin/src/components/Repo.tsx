@@ -12,7 +12,6 @@ import {
   VisuallyHidden,
   HeaderLayout,
   Loader,
-  Alert,
   Flex,
   IconButton,
   Link,
@@ -20,22 +19,78 @@ import {
 import { useFetchClient } from "@strapi/helper-plugin";
 import { Pencil, Trash, Plus } from "@strapi/icons";
 import { Repo } from "../../../types";
+import { useAlert } from "../hooks/useAlert";
+import { useConfirmationDialog } from "../hooks/useConfirmationDialog";
 
 const COL_COUNT = 5;
 
 const Repo: FC<any> = () => {
   const [repos, setRepos] = React.useState<Repo[]>([]);
   const [isLoadgin, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState(undefined);
-  const client = useFetchClient();
   const [selectedRepos, setSelectedRepos] = React.useState<string[]>([]);
+  const { alert, showAlert, AlertComponent } = useAlert();
+  const { dialog, setDialog, isVisible, setIsVisible, DialogComponent } =
+    useConfirmationDialog();
+  const client = useFetchClient();
   const allCheked = selectedRepos.length === repos.length;
   const isIndeterminate = selectedRepos.length > 0 && !allCheked;
 
   const createProject = async (repo: Repo) => {
-    console.log("create project", repo);
-    const response = await client.post("/github-projects/project", repo);
-    console.log(response);
+    try {
+      const response = await client.post("/github-projects/project", repo);
+      const newRepos = repos.map((repo) => {
+        if (repo.id.toString() === response.data.repositoryId) {
+          return {
+            ...repo,
+            projectId: response.data.id,
+          };
+        }
+        return repo;
+      });
+      setRepos(newRepos);
+      showAlert({
+        title: "Project created",
+        message: "Project created successfully",
+        variant: "success",
+      });
+    } catch (err: any) {
+      showAlert({
+        title: "Error creating project",
+        message: err.message,
+        variant: "danger",
+      });
+    }
+  };
+
+  const deleteProject = async (repo: Repo) => {
+    const { projectId } = repo;
+    try {
+      const response = await client.del(
+        `/github-projects/project/${projectId}`
+      );
+      console.log(response);
+      const newRepos = repos.map((repo) => {
+        if (repo.id.toString() === response.data.repositoryId) {
+          return {
+            ...repo,
+            projectId: null,
+          };
+        }
+        return repo;
+      });
+      setRepos(newRepos);
+      showAlert({
+        title: "Project deleted",
+        message: "Project deleted successfully",
+        variant: "success",
+      });
+    } catch (err: any) {
+      showAlert({
+        title: "Error deleting project",
+        message: err.message,
+        variant: "danger",
+      });
+    }
   };
 
   useEffect(() => {
@@ -46,7 +101,11 @@ const Repo: FC<any> = () => {
         setRepos(response.data);
       })
       .catch((err: any) => {
-        setError(err);
+        showAlert({
+          title: "Error fetching repositories",
+          message: err.message,
+          variant: "danger",
+        });
       })
       .finally(() => {
         setIsLoading(false);
@@ -61,24 +120,16 @@ const Repo: FC<any> = () => {
     );
   }
 
-  if (error) {
-    return (
-      <Box padding={8} background="neutral100">
-        <Alert
-          closeLabel="Close alert"
-          title="Error fetching repositories"
-          variant="danger"
-        >
-          {(error as any).toString()}
-        </Alert>
-      </Box>
-    );
-  }
-
   return (
     <>
-      <HeaderLayout title="Repositories" subtitle="your git repos" as="h2" />
-
+      <Flex justifyContent="flex-start">
+        <HeaderLayout title="Repositories" subtitle="your git repos" as="h2" />
+        {alert && (
+          <div>
+            <AlertComponent closeLabel="Close" />
+          </div>
+        )}
+      </Flex>
       <Box padding={8} background="neutral100">
         <Table colCount={COL_COUNT} rowCount={repos.length}>
           <Thead>
@@ -169,7 +220,25 @@ const Repo: FC<any> = () => {
                         </Link>
                         <Box paddingLeft={1}>
                           <IconButton
-                            onClick={() => console.log("delete")}
+                            onClick={() => {
+                              setDialog({
+                                ...dialog,
+                                title: "Delete project",
+                                description: `Are you sure you want to delete ${repo.name}?`,
+                                onClose: {
+                                  label: "Cancel",
+                                  function: () => setIsVisible(false),
+                                },
+                                onConfirm: {
+                                  label: "Delete",
+                                  function: () => {
+                                    deleteProject(repo);
+                                    setIsVisible(false);
+                                  },
+                                },
+                              });
+                              setIsVisible(true);
+                            }}
                             label="Delete"
                             noBorder
                             icon={<Trash />}
@@ -193,6 +262,7 @@ const Repo: FC<any> = () => {
           </Tbody>
         </Table>
       </Box>
+      <DialogComponent />
     </>
   );
 };
