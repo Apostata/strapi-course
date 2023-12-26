@@ -4,8 +4,15 @@ export default [
     path: "/repos", //accessible at http://localhost:1337/github-projects/repos
     handler: "getReposController.index",
     config: {
-      policies: [],
-      auth: false,
+      policies: ["admin::isAuthenticatedAdmin"], //somente admin pode acessar
+    },
+  },
+  {
+    method: "POST",
+    path: "/project",
+    handler: "projectController.create",
+    config: {
+      policies: ["admin::isAuthenticatedAdmin"], //somente admin pode acessar
     },
   },
 ];

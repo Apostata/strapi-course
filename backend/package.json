@@ -11,7 +11,8 @@
     "build": "strapi build",
     "develop": "strapi develop",
     "start": "strapi start",
-    "strapi": "strapi"
+    "strapi": "strapi",
+    "watch-admin": "strapi develop --watch-admin"
   },
   "dependencies": {
     "@strapi/plugin-cloud": "^4.15.5",
@@ -29,10 +30,10 @@
     "node": ">=18.0.0 <=20.x.x",
     "npm": ">=6.0.0"
   },
-  "strapi": {
-    "uuid": "2e8e9101-2b9a-4bb3-8277-f26507208fe3"
-  },
   "volta": {
     "node": "20.10.0"
+  },
+  "strapi": {
+    "uuid": "2e8e9101-2b9a-4bb3-8277-f26507208fe3"
   }
 }

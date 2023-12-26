@@ -2,17 +2,9 @@ import { Strapi } from "@strapi/strapi";
 import { request } from "@octokit/request";
 import axios from "axios";
 import markdownIt from "markdown-it";
-
+import { Repo } from "../../types";
 const md = markdownIt();
 const { GITHUB_TOKEN } = process.env;
-
-type Repo = {
-  id: string;
-  name: string;
-  shortDescription: string;
-  longDescription: string;
-  url: string;
-};
 
 export default ({ strapi }: { strapi: Strapi }) => ({
   getRepoProject: async (repo: Repo) => {
