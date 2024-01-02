@@ -665,3 +665,36 @@ title: t("actions.delete", {
 ```
 
 ## Extract Plugin's to a separate package
+
+1. Copy the plugin folder to a separate folder, out of the strapi folder tree, in this case `github-projects-plugin`.
+Then comment the plugin registration at `./config/plugins.ts` file at the Strapi project folder. 
+
+2. Add strapi as a peer dependency in the plugins package.json file.
+```json
+...
+"peerDependencies": {
+    "@strapi/strapi": "*" //any version
+  }
+...
+```
+3. add a gitingnore file to the plugin project, to ignore the node_modules folder.
+
+4. create and upload to a git repository.
+
+5. publish to npm as a `scoped public pakage` to your organization npm account.
+6. run `npm publish --access public` to publish the plugin to npm, with your organization account.
+
+7. install the plugin into your strapi project, run `npm install @your_organization/github-projects-plugin` at the root of the strapi project.
+
+
+## References
+[Developing Strapi plugins](https://docs.strapi.io/dev-docs/plugins/developing-plugins)
+
+[Strapi Marketplace GuideLines](https://market.strapi.io/guidelines)
+
+[Publushing Strapi plugins](https://missingstrapidocs.com/guide/plugin-guides/publish-plugin.html#publishing-to-npm)
+
+[Plugin Admin panel Available Actions](https://docs.strapi.io/dev-docs/api/plugins/admin-panel-api#available-actions)
+
+
+[Back](../readme.md)

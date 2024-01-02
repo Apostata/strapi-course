@@ -13,24 +13,27 @@ you can manually create a nested another model in the same api.
 This Strapi object gets injected is strapi core functions (policies, controllers and services) to give them access to the other strapi functionalities, in order to enable code modularity and reusability.
 
 ## Routes customization
-[Customizing routes](Customizing-routes.md)
+[Customizing routes](./Customizing-routes.md)
 
 ## Policies customization
-[Customizing policies](Customizing_policies.md)
+[Customizing policies](./Customizing_policies.md)
 
 ## Middlewares customization
-[Customizing middlewares](Customizing_middlewares.md)
+[Customizing middlewares](./Customizing_middlewares.md)
 
 ## Controllers customization
-[Customizing controllers](Customizing_controllers.md)
+[Customizing controllers](./Customizing_controllers.md)
 
 ## Services customization
-[Customizing services](Customizing_services.md)
+[Customizing services](./Customizing_services.md)
 
 ## Lifecycle Hooks
-[Lifecycle Hooks](Lifecycle_hooks.md)
+[Lifecycle Hooks](./Lifecycle_hooks.md)
 
 ## Webhooks
-[Webhooks](Webhooks.md)
+[Webhooks](./Webhooks.md)
 
-[Back](readme.md)
+## Customizing admin panel
+[Customizing admin panel](./Admin_panel_config.md)
+
+[Back](./readme.md)

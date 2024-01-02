@@ -134,6 +134,8 @@ Add `publicationState` parameter to the query string. and the value is a string.
 sample: `{{url}}/api/posts?publicationState=preview`. this will bring both published and preview entries.
 the default value is `live`.
 
-### Locale
+### Api documentation
+[Api docs](https://market.strapi.io/plugins/@strapi-plugin-documentation)
+
 
 [BACK](./readme.md)

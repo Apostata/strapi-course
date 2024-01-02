@@ -163,3 +163,12 @@ npm run strapi ts:generate-types --debug #optional flag to display additional lo
 ## In doubt about query params?
 
 [Iteractive query builder](https://docs.strapi.io/dev-docs/api/rest/interactive-query-builder)
+
+## Plugin development
+[Plugin Creation](./Plugin_creation.md)
+
+## Deploying Strapi to production
+[Deploying Strapi to production](./Deployment_to_production.md)
+
+## Strapi available plugins
+[Strapi available plugins](https://market.strapi.io/)

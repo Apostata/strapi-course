@@ -47,6 +47,7 @@ export default ({ env }) => ({
 ```	
 
 [Customizing admin panel](https://docs.strapi.io/dev-docs/admin-panel-customization)
+
 [Admin panel available options](https://docs.strapi.io/dev-docs/configurations/admin-panel)
 
 ## Customizing admin panel UI
@@ -119,4 +120,8 @@ export default {
 
 ```
 
+[Translation keys](./translations_keys.md)
+
 [Strapi Design system storybook](https://design-system-git-main-strapijs.vercel.app/?path=/docs/design-system-primitives-combobox--docs)
+
+[Back](./Customizing_strapi.md)
