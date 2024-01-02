@@ -1,1 +1,26 @@
-{}
+{
+  "plugin.name": "Github Projects",
+  "plugin.description": "Create and delete Github projects from the UI",
+  "home.title": "Repositories",
+  "home.description": "Create and delete Github projects from the UI",
+  "table.name": "Name",
+  "table.description": "Description",
+  "table.url": "URL",
+  "table.actions": "Actions",
+  "table.project": "Project",
+  "table.repositories": "Repositories",
+  "bulkActions.text": "You have {projectsToCreate} projects to generate and {projectsToDelete} to delete",
+  "bulkActions.create": "Create {projectsToCreate} projects",
+  "bulkActions.delete": "Delete {projectsToDelete} projects",
+  "actions.confirm": "Are you sure you want to {action} {name}?",
+  "actions.create": "Create {name}",
+  "actions.delete": "Delete {name}",
+  "actions.cancel": "Cancel {name}",
+  "actions.edit": "Edit {name}",
+  "actions.success.create": "{entity} {name} created",
+  "actions.error.create": "Error creating {entity} {name}",
+  "actions.success.delete": "{entity} {name} deleted",
+  "actions.error.delete": "Error deleting {entity} {name}",
+  "actions.error.fetching": "Error fetching {entity} {name}",
+  "no_description": "No description"
+}

@@ -51,6 +51,7 @@ export default {
         "Auth.form.welcome.subtitle": "Faça login para continuar",
         "app.components.LeftMenu.navbrand.title": "Painel Administrativo",
         "global.localeToggle.label": "Idioma",
+        "cloud.plugin.name": "Cloud",
       },
       en: {
         titleTemplate: "Admin Panel",
@@ -58,6 +59,7 @@ export default {
         "Auth.form.welcome.subtitle": "Login to continue",
         "app.components.LeftMenu.navbrand.title": "Admin Panel",
         "global.localeToggle.label": "Language",
+        "cloud.plugin.name": "Cloud",
       },
     },
   },

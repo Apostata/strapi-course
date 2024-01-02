@@ -18,10 +18,12 @@ export default {
 }
 ```
 
-## installing and build
-At plugin folder run `npm install` and `npm run build` to install dependencies and build the plugin.
+## Installing and build
 
-**Note: Every modification in the plugin files will require a new build.**
+At plugin folder run `npm install` and `npm run build` to install dependencies and build the plugin.
+then at the root of the main Strapi project, run `npm run develop` to start the server or `npm run develop -- --watch-admin`, for watching for changes at admin folder.
+
+**Note: Every modification in the plugin files at Server folder ou new Files in Admin folder will require a new build**
 
 
 ## Developing the github-projects plugin
@@ -293,3 +295,373 @@ export default ({ strapi }: { strapi: Strapi }) => ({
 
 [Plugin content types documentation](https://docs.strapi.io/dev-docs/api/plugins/server-api#content-types)
 [Model documentation](https://docs.strapi.io/dev-docs/backend-customization/models)
+
+
+### Plugin Role based access control (RBAC)
+
+You can create a role for the plugin, and assign it to a user. This role will have access to the plugin's content types and permissions.
+
+At the plugin folder, in this case `github-projects`, `src/plugins/github-projects/server/bootstrap.ts`,
+create constant for the RBAC actions, and register them at the bootstrap phase:
+
+```ts
+
+import { Strapi } from "@strapi/strapi";
+
+// Role Based Access Control actions
+const RBAC_ACTIONS = [
+  {
+    section: "plugins",
+    displayName: "Access the GitHub Projects plugin",
+    uid: "access",
+    pluginName: "github-projects",
+  },
+   {
+    section: "plugins",
+    subCategory: "Repositories", // to better organize the permissions
+    displayName: "Read github Repositories",
+    uid: "repos.read",
+    pluginName: "github-projects",
+  },
+];
+
+export default async ({ strapi }: { strapi: Strapi }) => {
+  // bootstrap phase
+  await strapi.admin?.services.permission.actionProvider.registerMany(
+    RBAC_ACTIONS
+  );
+};
+
+```
+
+then at `src/plugins/github-projects/admin/src/index.tsx` add the permissions in the plugin registration permissions:
+
+```tsx
+...
+
+const name = pluginPkg.strapi.name;
+
+export default {
+  register(app: any) {
+    app.addMenuLink({
+      to: `/plugins/${pluginId}`,
+      icon: PluginIcon,
+      intlLabel: {
+        id: `${pluginId}.plugin.name`,
+        defaultMessage: name,
+      },
+      Component: async () => {
+        const component = await import("./pages/App");
+
+        return component;
+      },
+      permissions: [
+        // set the permissions of the plugin here
+        {
+          action: "plugin::github-projects.access", // the action name should be plugin::plugin-name.actionType
+          subject: null,
+        },
+      ],
+    });
+    const plugin = {
+      id: pluginId,
+      initializer: Initializer,
+      isReady: false,
+      name,
+    };
+
+    app.registerPlugin(plugin);
+  },
+
+  bootstrap(app: any) {},
+
+  ...
+  },
+};
+ 
+```
+
+#### RBAC for content routes
+
+Now we will create a policy to check if the user has the permission to access the plugin's content routes.
+in this case, we will create a policy to check if the user has the permission to read, write, delete projects the plugin's repositories, by updating the policies object at plugin route.
+
+```ts	
+export default [
+  {
+    method: "GET",
+    path: "/repos", //accessible at http://localhost:1337/github-projects/repos
+    handler: "getReposController.index",
+    config: {
+      policies: [
+        "admin::isAuthenticatedAdmin",
+        {
+          name: "admin::hasPermissions",
+          config: {
+            actions: [
+              "plugin::github-projects.repos.read",
+              "plugin::github-projects.projects.read",
+            ],
+          },
+        },
+      ], //somente admin pode acessar
+    },
+  },
+  {
+    method: "POST",
+    path: "/project",
+    handler: "projectController.create",
+    config: {
+      policies: [
+        "admin::isAuthenticatedAdmin",
+        {
+          name: "admin::hasPermissions",
+          config: {
+            actions: ["plugin::github-projects.projects.create"],
+          },
+        },
+      ],
+    },
+  },
+  {
+    method: "POST",
+    path: "/projects",
+    handler: "projectController.createMany",
+    config: {
+      policies: [
+        "admin::isAuthenticatedAdmin",
+        {
+          name: "admin::hasPermissions",
+          config: {
+            actions: ["plugin::github-projects.projects.create"],
+          },
+        },
+      ], //somente admin pode acessar
+    },
+  },
+  {
+    method: "DELETE",
+    path: "/project/:id",
+    handler: "projectController.delete",
+    config: {
+      policies: [
+        "admin::isAuthenticatedAdmin",
+        {
+          name: "admin::hasPermissions",
+          config: {
+            actions: ["plugin::github-projects.projects.delete"],
+          },
+        },
+      ], //somente admin pode acessar
+    },
+  },
+  {
+    method: "DELETE",
+    path: "/projects",
+    handler: "projectController.deleteMany",
+    config: {
+      policies: [
+        "admin::isAuthenticatedAdmin",
+        {
+          name: "admin::hasPermissions",
+          config: {
+            actions: ["plugin::github-projects.projects.delete"],
+          },
+        },
+      ], //somente admin pode acessar
+    },
+  },
+];
+
+```
+
+Now in admin panel, you must set the permissions to the role, to access the plugin's content routes.
+
+#### RBAC for public routes
+
+Now we will create public routes to acesse the project Entity.
+
+```ts
+export default [
+  ...
+  {
+    method: "GET",
+    path: "/projects", //accessible at http://localhost:1337/github-projects/projects
+    handler: "projectController.find",
+    config: {
+      auth: false,
+      //prefix: false
+    },
+  },
+  {
+    method: "GET",
+    path: "/project/:id", //accessible at http://localhost:1337/github-projects/project/1
+    handler: "projectController.findOne",
+    config: {
+      auth: false,
+      //prefix: false // chnahge the prefix to false to remove the /github-projects from the url = http://localhost:1337/project/1
+    },
+  },
+];
+```
+
+updating controllers:
+
+```ts
+export default ({ strapi }: { strapi: Strapi }) => ({
+  ...
+  find: async (ctx: any) => {
+    const { query } = ctx;
+    const projects = await strapi
+      .plugin("github-projects")
+      .service("projectService")
+      .find(query);
+    return projects;
+  },
+
+  findOne: async (ctx: any) => {
+    const { query } = ctx;
+    const projectId = ctx.params.id;
+    const project = await strapi
+      .plugin("github-projects")
+      .service("projectService")
+      .findOne(projectId, query);
+    return project;
+  } 
+});
+
+```
+
+update services:
+
+```ts
+import { Strapi } from "@strapi/strapi";
+import { Repo } from "../../types";
+
+export default ({ strapi }: { strapi: Strapi }) => ({
+  ...
+  find: async (query: any) => {
+    const projects = await strapi.entityService!.findMany(
+      "plugin::github-projects.project",
+      query
+    );
+    return projects;
+  },
+
+  findOne: async (projectId: string, query: any) => {
+    const project = await strapi.entityService!.findOne(
+      "plugin::github-projects.project",
+      projectId,
+      query
+    );
+    return project;
+  }
+});
+
+```
+
+## Internationalization
+
+At the plugin folder, in this case `github-projects`, `src/plugins/github-projects/admin/src/translations`, create a file for eache language you want to support, in this case `en.json` and `pt-BR.json`:
+
+```json
+{
+  "plugin.name": "Projetos do Github",
+  "plugin.description": "Adicionar e remover projetos vindos do Github",
+  "home.title": "Repositórios",
+  "home.description": "Adicione e remova projetos vindos do Github",
+  "table.name": "Nome",
+  "table.description": "Descrição",
+  "table.url": "URL",
+  "table.actions": "Ações",
+  "table.project": "Projeto",
+  "table.repositories": "Repositórios",
+  "bulkActions.text": "Você possui {projectsToCreate} projeto para criar e {projectsToDelete} para excluir",
+  "bulkActions.create": "Criar {projectsToCreate} projeto(s)",
+  "bulkActions.delete": "Excluir {projectsToDelete} projeto(s)",
+  "actions.confirm": "Tem certeza que deseja {action} {name}?",
+  "actions.create": "Criar {name}",
+  "actions.delete": "Excluir {name}",
+  "actions.cancel": "Cancelar {name}",
+  "actions.edit": "Editar {name}",
+  "actions.success.create": "{entity} {name} criado!",
+  "actions.error.create": "Erro ao criar {entity} {name}",
+  "actions.success.delete": "{entity} {name} excluido!",
+  "actions.error.delete": "Erro ao excluir {entity} {name}",
+  "actions.error.fetching": "Erro ao buscar {entity} {name}",
+  "no_description": "Sem descrição"
+}
+
+```
+
+I decided to create a hook to handle translations at the Helpers folder, in this case `src/plugins/github-projects/admin/src/helpers`, called `useTranslations.ts`, using the `react-intl` library and the `getTrad` (already created by Strapi) function to get the translation from the json file:
+
+```ts
+import { useIntl } from "react-intl";
+import getTrad from "./getTrad";
+import React, { FC, useCallback } from "react";
+
+type Translation = {
+  children: string;
+  values?: any;
+};
+
+export const useTranlation = () => {
+  const { formatMessage } = useIntl();
+
+  const t = useCallback(
+    (id: string, values?: any) => {
+      if (values && !values?.name) {
+        values.name = "";
+      }
+      if (!values) {
+        values = { name: "" };
+      }
+      return formatMessage({ id: getTrad(id) }, values);
+    },
+    [formatMessage]
+  );
+
+  const Trans: FC<Translation> = useCallback(
+    (props) => {
+      const { children, values } = (props = { ...props });
+      return <span>{t(children as string, values)}</span>;
+    },
+    [formatMessage]
+  );
+  return { t, Trans };
+};
+
+```
+
+Now we can use the hook at the components:
+```tsx
+t("KEY_OF_THE_TRANSLATION",{
+  values: {
+    SOME_VAR: "VALUE"
+  }
+})
+
+//OR
+
+<Trans values={{ SOME_VAR: t("VALUE") }}>
+  KEY_OF_THE_TRANSLATION
+</Trans>
+``` 
+
+sample in use
+```tsx
+...
+title: t("actions.delete", {
+  name: `${t("table.repositories")}(s)`,
+}) // Delete Repositories(s) ou Excluir Repositório(s)
+...
+
+//OR
+
+<Trans values={{ name: `${t("table.repositories")}(s)` }}>
+  actions.delete
+</Trans>
+```
+
+## Extract Plugin's to a separate package

@@ -216,7 +216,9 @@ import {
   BaseCheckbox,
   Typography,
   VisuallyHidden,
+  Layout,
   HeaderLayout,
+  ContentLayout,
   Loader,
   Flex,
   IconButton,
@@ -224,20 +226,27 @@ import {
 } from "@strapi/design-system";
 import { useFetchClient } from "@strapi/helper-plugin";
 import { Pencil, Trash, Plus } from "@strapi/icons";
-import { Repo } from "../../../types";
-import { useAlert } from "../hooks/useAlert";
+import { Repo } from "../../../../types";
+import { useAlert } from "../../hooks/useAlert";
+import { useConfirmationDialog } from "../../hooks/useConfirmationDialog";
+import BulkActions from "../BulkActions";
 
 const COL_COUNT = 5;
 
 const Repo: FC<any> = () => {
   const [repos, setRepos] = React.useState<Repo[]>([]);
   const [isLoadgin, setIsLoading] = React.useState(false);
-  const [selectedRepos, setSelectedRepos] = React.useState<string[]>([]);
+  const [selectedRepos, setSelectedRepos] = React.useState<Repo[]>([]);
   const { alert, showAlert, AlertComponent } = useAlert();
-
+  const { dialog, setDialog, isVisible, setIsVisible, DialogComponent } =
+    useConfirmationDialog();
   const client = useFetchClient();
   const allCheked = selectedRepos.length === repos.length;
   const isIndeterminate = selectedRepos.length > 0 && !allCheked;
+  const projectsToCreate =
+    selectedRepos.filter((item) => item.projectId === null).length || 0;
+  const projectsToDelete =
+    selectedRepos.filter((item) => item.projectId !== null).length || 0;
 
   const createProject = async (repo: Repo) => {
     try {
@@ -253,13 +262,44 @@ const Repo: FC<any> = () => {
       });
       setRepos(newRepos);
       showAlert({
-        title: "Project created",
+        title: `Project ${repo.name} created`,
         message: "Project created successfully",
         variant: "success",
       });
     } catch (err: any) {
       showAlert({
         title: "Error creating project",
+        message: err.message,
+        variant: "danger",
+      });
+    }
+  };
+
+  const deleteProject = async (repo: Repo) => {
+    const { projectId } = repo;
+    try {
+      const response = await client.del(
+        `/github-projects/project/${projectId}`
+      );
+      console.log(response);
+      const newRepos = repos.map((repo) => {
+        if (repo.id.toString() === response.data.repositoryId) {
+          return {
+            ...repo,
+            projectId: null,
+          };
+        }
+        return repo;
+      });
+      setRepos(newRepos);
+      showAlert({
+        title: `Project ${repo.name} deleted`,
+        message: `Project deleted successfully`,
+        variant: "success",
+      });
+    } catch (err: any) {
+      showAlert({
+        title: `Error deleting project ${repo.name}`,
         message: err.message,
         variant: "danger",
       });
@@ -294,130 +334,177 @@ const Repo: FC<any> = () => {
   }
 
   return (
-    <>
-      <Flex justifyContent="flex-start">
-        <HeaderLayout title="Repositories" subtitle="your git repos" as="h2" />
-        {alert && (
-          <div>
-            <AlertComponent closeLabel="Close" />
-          </div>
-        )}
-      </Flex>
-      <Box padding={8} background="neutral100">
-        <Table colCount={COL_COUNT} rowCount={repos.length}>
-          <Thead>
-            <Tr>
-              <Th>
-                <BaseCheckbox
-                  aria-label="Select all entries"
-                  value={allCheked}
-                  indeterminate={isIndeterminate}
-                  onValueChange={(value: boolean) => {
-                    if (value) {
-                      const selRepos = repos.map((repo) => repo.id);
-                      setSelectedRepos(selRepos);
-                    } else {
-                      setSelectedRepos([]);
-                    }
-                  }}
-                />
-              </Th>
-              <Th>
-                <Typography variant="sigma">Name</Typography>
-              </Th>
-              <Th>
-                <Typography variant="sigma">Description</Typography>
-              </Th>
-              <Th>
-                <Typography variant="sigma">Url</Typography>
-              </Th>
-              <Th>
-                <VisuallyHidden>Actions</VisuallyHidden>
-              </Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {repos.map((repo) => {
-              const {
-                id,
-                name,
-                shortDescription: description,
-                url,
-                projectId,
-              } = repo;
-              return (
-                <Tr key={`table-row-${id}`}>
-                  <Td>
-                    <BaseCheckbox
-                      aria-label={`Select ${id}`}
-                      value={selectedRepos.includes(id)}
-                      onValueChange={(value: boolean) => {
-                        if (value) {
-                          setSelectedRepos([...selectedRepos, id]);
-                        } else {
-                          setSelectedRepos(
-                            selectedRepos.filter((repoId) => repoId !== id)
-                          );
-                        }
-                      }}
-                    />
-                  </Td>
-                  <Td>
-                    <Typography textColor="neutral800">{name}</Typography>
-                  </Td>
-                  <Td>
-                    <Typography textColor="neutral800">
-                      {description ?? "no description"}
-                    </Typography>
-                  </Td>
-                  <Td>
-                    <Typography textColor="neutral800">
-                      <Link href={url} isExternal>
-                        {url}
-                      </Link>
-                    </Typography>
-                  </Td>
-                  <Td>
-                    {projectId ? (
-                      <Flex>
-                        <Link
-                          alt={`Edit ${name}`}
-                          to={`/content-manager/collectionType/plugin::github-projects.project/${projectId}`}
-                        >
-                          <IconButton
-                            onClick={() => console.log("edit")}
-                            label="Edit"
-                            noBorder
-                            icon={<Pencil />}
-                          />
+    <Box background="neutral100">
+      <Layout>
+        <Flex justifyContent="flex-start">
+          <HeaderLayout
+            title="Repositories"
+            subtitle="your git repos"
+            as="h2"
+          />
+          {alert && (
+            <div>
+              <AlertComponent closeLabel="Close" />
+            </div>
+          )}
+        </Flex>
+        <ContentLayout>
+          <BulkActions<Repo>
+            selectedItems={selectedRepos}
+            text={`You have ${projectsToCreate} projects to generate and ${projectsToDelete} to delete`}
+            actions={[
+              {
+                show: projectsToCreate > 0,
+                label: `Create ${projectsToCreate} project(s)`,
+                variant: "success-light",
+                icon: (<Plus />) as React.ReactNode,
+                function: () => console.log("add"),
+              },
+              {
+                show: projectsToDelete > 0,
+                label: `Delete ${projectsToDelete} project(s)`,
+                variant: "danger-light",
+                icon: (<Trash />) as React.ReactNode,
+                function: () => console.log("delete"),
+              },
+            ]}
+          ></BulkActions>
+          <Table colCount={COL_COUNT} rowCount={repos.length}>
+            <Thead>
+              <Tr>
+                <Th>
+                  <BaseCheckbox
+                    aria-label="Select all entries"
+                    value={allCheked}
+                    indeterminate={isIndeterminate}
+                    onValueChange={(value: boolean) => {
+                      if (value) {
+                        const selRepos = repos.map((repo) => repo);
+                        setSelectedRepos(selRepos);
+                      } else {
+                        setSelectedRepos([]);
+                      }
+                    }}
+                  />
+                </Th>
+                <Th>
+                  <Typography variant="sigma">Name</Typography>
+                </Th>
+                <Th>
+                  <Typography variant="sigma">Description</Typography>
+                </Th>
+                <Th>
+                  <Typography variant="sigma">Url</Typography>
+                </Th>
+                <Th>
+                  <VisuallyHidden>Actions</VisuallyHidden>
+                </Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {repos.map((repo) => {
+                const {
+                  id,
+                  name,
+                  shortDescription: description,
+                  url,
+                  projectId,
+                } = repo;
+                return (
+                  <Tr key={`table-row-${id}`}>
+                    <Td>
+                      <BaseCheckbox
+                        aria-label={`Select-${id}`}
+                        value={selectedRepos.includes(repo)}
+                        onValueChange={(value: boolean) => {
+                          if (value) {
+                            setSelectedRepos([...selectedRepos, repo]);
+                          } else {
+                            setSelectedRepos(
+                              selectedRepos.filter(
+                                (selectedRepo) => selectedRepo.id !== repo.id
+                              )
+                            );
+                          }
+                        }}
+                      />
+                    </Td>
+                    <Td>
+                      <Typography textColor="neutral800">{name}</Typography>
+                    </Td>
+                    <Td>
+                      <Typography textColor="neutral800">
+                        {description ?? "no description"}
+                      </Typography>
+                    </Td>
+                    <Td>
+                      <Typography textColor="neutral800">
+                        <Link href={url} isExternal>
+                          {url}
                         </Link>
-                        <Box paddingLeft={1}>
+                      </Typography>
+                    </Td>
+                    <Td>
+                      {projectId ? (
+                        <Flex>
+                          <Link
+                            alt={`Edit ${name}`}
+                            to={`/content-manager/collectionType/plugin::github-projects.project/${projectId}`}
+                          >
+                            <IconButton
+                              onClick={() => console.log("edit")}
+                              label="Edit"
+                              noBorder
+                              icon={<Pencil />}
+                            />
+                          </Link>
+                          <Box paddingLeft={1}>
+                            <IconButton
+                              onClick={() => {
+                                setDialog({
+                                  ...dialog,
+                                  title: "Delete project",
+                                  description: `Are you sure you want to delete ${repo.name}?`,
+                                  onClose: {
+                                    label: "Cancel",
+                                    function: () => setIsVisible(false),
+                                  },
+                                  onConfirm: {
+                                    label: "Delete",
+                                    function: () => {
+                                      deleteProject(repo);
+                                      setIsVisible(false);
+                                    },
+                                  },
+                                });
+                                setIsVisible(true);
+                              }}
+                              label="Delete"
+                              noBorder
+                              icon={<Trash />}
+                            />
+                          </Box>
+                        </Flex>
+                      ) : (
+                        <Flex>
                           <IconButton
-                            onClick={() => console.log("delete")}
-                            label="Delete"
+                            onClick={() => createProject(repo)}
+                            label="Add"
                             noBorder
-                            icon={<Trash />}
+                            icon={<Plus />}
                           />
-                        </Box>
-                      </Flex>
-                    ) : (
-                      <Flex>
-                        <IconButton
-                          onClick={() => createProject(repo)}
-                          label="Add"
-                          noBorder
-                          icon={<Plus />}
-                        />
-                      </Flex>
-                    )}
-                  </Td>
-                </Tr>
-              );
-            })}
-          </Tbody>
-        </Table>
-      </Box>
-    </>
+                        </Flex>
+                      )}
+                    </Td>
+                  </Tr>
+                );
+              })}
+            </Tbody>
+          </Table>
+        </ContentLayout>
+        <DialogComponent />
+      </Layout>
+    </Box>
   );
 };
 
@@ -514,20 +601,146 @@ export default ({ strapi }: { strapi: Strapi }) => ({
 
 ```
 
-## Generating a single project from the plugin action (DELETE)
+## Deleting a single project from the plugin action (DELETE)
 
 ### Adding the route
 
 ```tsx
+
+export default [
+ ...
+  {
+    method: "DELETE",
+    path: "/project/:id",
+    handler: "projectController.delete",
+    config: {
+      policies: ["admin::isAuthenticatedAdmin"], //somente admin pode acessar
+    },
+  },
+];
+
 ```
 
 ### Adding the controller
 
 ```tsx
+import { Strapi } from "@strapi/strapi";
+
+export default ({ strapi }: { strapi: Strapi }) => ({
+ ...
+  delete: async (ctx: any) => {
+    console.log("controller params", ctx.params);
+    const projectId = ctx.params.id;
+    console.log("controller projectId", projectId);
+    const deletedProject = await strapi
+      .plugin("github-projects")
+      .service("projectService")
+      .delete(projectId);
+    return deletedProject;
+  },
+});
+
 ```
 
 ### Adding the service
 
 ```tsx
+export default ({ strapi }: { strapi: Strapi }) => ({
+ ...
+  delete: async (projectId: string) => {
+    console.log("service projectId", projectId);
+    const project = await strapi.entityService!.delete(
+      "plugin::github-projects.project",
+      projectId
+    );
+    return project;
+  },
+});
 ```
 
+## Generating multiple projects from the plugin action (BULK ADD)
+
+### Adding the route
+
+```tsx
+export default [
+  ...
+  {
+    method: "POST",
+    path: "/projects",
+    handler: "projectController.createMany",
+    config: {
+      policies: ["admin::isAuthenticatedAdmin"], //somente admin pode acessar
+    },
+  },
+...
+];
+
+```	
+
+### Adding the controller
+
+```tsx
+import { Strapi } from "@strapi/strapi";
+
+export default ({ strapi }: { strapi: Strapi }) => ({
+  ...
+  createMany: async (ctx: any) => {
+    const repos = ctx.request.body;
+    const userId = ctx.state.user.id;
+    const newProjects = await strapi
+      .plugin("github-projects")
+      .service("projectService")
+      .createMany(repos, userId);
+    return newProjects;
+  },
+
+ ...
+});
+
+```
+
+### Adding the service
+
+```tsx
+import { Strapi } from "@strapi/strapi";
+import { Repo } from "../../types";
+
+export default ({ strapi }: { strapi: Strapi }) => ({
+  ...
+  create: async (repo: Repo, userId: string) => {
+    const newProject = await strapi.entityService!.create(
+      "plugin::github-projects.project",
+      {
+        data: {
+          repositoryId: `${repo.id}`,
+          title: repo.name,
+          shortDescription: repo.shortDescription,
+          longDescription: repo.longDescription,
+          repositoryUrl: repo.url,
+          createdBy: userId,
+          updatedBy: userId,
+        },
+      }
+    );
+    return newProject;
+  },
+
+  createMany: async (repos: Repo[], userId: string) => {
+    const newProjects = await Promise.all(
+      (repos || []).map(
+        async (repo) =>
+          await strapi
+            .plugin("github-projects")
+            .service("projectService")
+            .create(repo, userId)
+      )
+    );
+
+    return newProjects;
+  },
+
+  ...
+});
+
+```

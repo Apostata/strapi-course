@@ -26,10 +26,11 @@ export const useAlert = () => {
         <Alert
           {...props}
           title={alert.title}
-          message={alert.message}
           variant={alert.variant}
           onClose={() => setAlert(undefined)}
-        />
+        >
+          : {alert.message}
+        </Alert>
       );
     },
     [alert]
